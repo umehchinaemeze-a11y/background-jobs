@@ -153,4 +153,5 @@ worker/         claim (FOR UPDATE SKIP LOCKED), executor, recovery sweep, pool, 
 prisma/         schema + migrations
 tests/          vitest suite (unit + integration, real Postgres)
 scripts/        db-setup + break-it evidence harness → evidence/*
-```
+```#   b a c k g r o u n d - j o b s  
+ 
