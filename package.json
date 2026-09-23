@@ -1,0 +1,54 @@
+{
+  "name": "background-jobs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Persistent PostgreSQL-backed background job system for transactional order-confirmation emails",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "worker": "tsx worker/index.ts",
+    "dev:all": "npm run dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "breakit": "tsx scripts/breakit/run-all.ts",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "6.7.0",
+    "next": "15.5.25",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@eslint/eslintrc": "^3.2.0",
+    "@types/pg": "^8.11.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "15.5.25",
+    "pg": "^8.13.0",
+    "prisma": "6.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.0.0"
+  },
+  "allowScripts": {
+    "prisma@6.7.0": true,
+    "@prisma/client@6.7.0": true,
+    "@prisma/engines@6.7.0": true,
+    "esbuild@0.28.2": true,
+    "sharp@0.33.5": true,
+    "unrs-resolver@1.12.2": true
+  }
+}

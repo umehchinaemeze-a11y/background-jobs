@@ -1,0 +1,63 @@
+// Prisma schema for the background job system.
+//
+// The database is the single source of truth for job state. All state
+// transitions (claim, fail, recover, retry, succeed) are performed in
+// transactions/atomic SQL so that concurrent workers cannot corrupt state.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum JobStatus {
+  pending
+  processing
+  succeeded
+  failed
+  dead
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  userId         String
+  type           String
+  payload        Json
+  status         JobStatus @default(pending)
+  attempts       Int      @default(0)
+  maxAttempts    Int
+  lastError      String?
+  runAt          DateTime @default(now())
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  claimedBy      String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  deliveries JobOutput[]
+
+  // Primary queue index: find runnable jobs (pending/failed with runAt <= now).
+  @@index([status, runAt])
+  // Stuck-job sweep: find processing jobs whose startedAt is stale.
+  @@index([status, startedAt])
+  // Ownership scoped queries (status endpoint, dead-letter list).
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+// Durable output record for a completed email delivery. Keyed 1:1 to a job.
+// Its unique jobId constraint is the idempotency guard: a job can have at
+// most one recorded delivery, so re-executing work always resolves to the
+// same logical output.
+model JobOutput {
+  id                String   @id @default(cuid())
+  jobId             String   @unique
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  providerMessageId String
+  recipient         String
+  sentAt            DateTime @default(now())
+}
