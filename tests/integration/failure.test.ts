@@ -29,6 +29,14 @@ describe("failure lifecycle", () => {
     );
 
     const { lines, restore } = captureLogs();
+
+    // Initial pending state is captured before the pool starts, so the first
+    // snapshot can't race the claim and start mid-'processing'.
+    const initialA = await jobById(jobA.jobId);
+    const snapshots: { status: string; attempts: number; runAt: number }[] = initialA
+      ? [{ status: initialA.status, attempts: initialA.attempts, runAt: initialA.runAt.getTime() }]
+      : [];
+
     const pool = new WorkerPool(config(), "fail-drill", {
       concurrency: 1,
       pollIntervalMs: 120,
@@ -36,14 +44,14 @@ describe("failure lifecycle", () => {
     const run = pool.start();
 
     // Sample the DB row over time to prove the state machine progressed.
-    const snapshots: { status: string; attempts: number; runAt: number }[] = [];
     await waitFor(
       async () => {
         const a = await jobById(jobA.jobId);
         if (a) {
           snapshots.push({ status: a.status, attempts: a.attempts, runAt: a.runAt.getTime() });
         }
-        return a?.status === "dead";
+        const b = await jobById(jobB.jobId);
+        return a?.status === "dead" && b?.status === "dead";
       },
       40_000,
       200,

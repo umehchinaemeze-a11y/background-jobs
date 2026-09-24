@@ -44,18 +44,22 @@ function isoOrBlank(s: string | null): string {
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
-  // Token state
-  const [token, setToken] = useState(readToken);
+  // Token state — starts empty so SSR and the client render identically; the
+  // saved token is only restored after mount (never during render).
+  const [token, setToken] = useState("");
   const onTokenChange = (v: string) => {
     setToken(v);
     saveToken(v);
   };
 
-  // Enqueue form state
-  const [orderNumber, setOrderNumber] = useState(() => `ORD-${Date.now().toString(36)}`);
+  // Volatile defaults are applied after mount so the server-rendered markup
+  // never embeds Date.now()-derived values (avoids hydration mismatches).
+  const [orderNumber, setOrderNumber] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("alice@example.com");
   const [recipientName, setRecipientName] = useState("Alice");
-  const [idempotencyKey, setIdempotencyKey] = useState(() => `order/${Date.now().toString(36)}`);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
+
+  // Enqueue form state
   const [forceFailure, setForceFailure] = useState(false);
   const [testDelayMs, setTestDelayMs] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -95,6 +99,9 @@ export default function HomePage() {
   );
 
   useEffect(() => {
+    setToken(readToken());
+    setOrderNumber(`ORD-${Date.now().toString(36)}`);
+    setIdempotencyKey(`order/${Date.now().toString(36)}`);
     return () => clearPoll();
   }, []);
 

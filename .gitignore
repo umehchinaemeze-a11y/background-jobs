@@ -6,4 +6,5 @@ node_modules/
 coverage/
 evidence/
 *.log
+tsconfig.tsbuildinfo
 .DS_Store
